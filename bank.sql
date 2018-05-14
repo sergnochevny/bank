@@ -11,27 +11,6 @@
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 
--- Дамп структуры для таблица bank.key_storage
-DROP TABLE IF EXISTS `key_storage`;
-CREATE TABLE IF NOT EXISTS `key_storage` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `key` varchar(128) NOT NULL,
-  `value` text NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `key` (`key`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
--- Дамп структуры для таблица bank.url_sef
-DROP TABLE IF EXISTS `url_sef`;
-CREATE TABLE IF NOT EXISTS `url_sef` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `url` varchar(250) NOT NULL,
-  `sef` varchar(250) NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `url` (`url`),
-  UNIQUE KEY `sef` (`sef`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
 -- Дамп структуры для таблица bank.account
 DROP TABLE IF EXISTS `account`;
 CREATE TABLE IF NOT EXISTS `account` (
@@ -64,9 +43,26 @@ CREATE TABLE IF NOT EXISTS `account_type` (
 -- Дамп данных таблицы bank.account_type: ~2 rows (приблизительно)
 /*!40000 ALTER TABLE `account_type` DISABLE KEYS */;
 INSERT INTO `account_type` (`id`, `name`, `created_at`, `updated_at`) VALUES
-	(1, 'deposit', 1526211660, NULL),
+	(1, 'debit', 1526211660, 1526323817),
 	(2, 'credit', 1526211670, NULL);
 /*!40000 ALTER TABLE `account_type` ENABLE KEYS */;
+
+-- Дамп структуры для таблица bank.bank_account
+DROP TABLE IF EXISTS `bank_account`;
+CREATE TABLE IF NOT EXISTS `bank_account` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `account_type_id` int(11) unsigned NOT NULL,
+  `amount` decimal(10,4) NOT NULL DEFAULT '0.0000',
+  `created_at` int(11) unsigned NOT NULL,
+  `updated_at` int(11) unsigned DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `bank_account_account_type_id_fk` (`account_type_id`),
+  CONSTRAINT `bank_account_account_type_id_fk` FOREIGN KEY (`account_type_id`) REFERENCES `account_type` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- Дамп данных таблицы bank.bank_account: ~0 rows (приблизительно)
+/*!40000 ALTER TABLE `bank_account` DISABLE KEYS */;
+/*!40000 ALTER TABLE `bank_account` ENABLE KEYS */;
 
 -- Дамп структуры для процедура bank.calculate_by_account
 DROP PROCEDURE IF EXISTS `calculate_by_account`;
@@ -121,7 +117,7 @@ CREATE TABLE IF NOT EXISTS `calculation` (
   `updated_at` int(11) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `calculation_account_type_id_fk` (`account_type_id`),
-  CONSTRAINT `calculation_account_type_id_fk` FOREIGN KEY (`account_type_id`) REFERENCES `account_type` (`id`) ON DELETE CASCADE
+  CONSTRAINT `calculation_account_type_id_fk` FOREIGN KEY (`account_type_id`) REFERENCES `account_type` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
 
 -- Дамп данных таблицы bank.calculation: ~0 rows (приблизительно)
@@ -277,11 +273,11 @@ CREATE TABLE IF NOT EXISTS `contract` (
   PRIMARY KEY (`id`),
   KEY `contract_client_id_fk` (`client_id`),
   KEY `contract_account_type_id_fk` (`account_type_id`),
-  CONSTRAINT `contract_account_type_id_fk` FOREIGN KEY (`account_type_id`) REFERENCES `account_type` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `contract_account_type_id_fk` FOREIGN KEY (`account_type_id`) REFERENCES `account_type` (`id`),
   CONSTRAINT `contract_client_id_fk` FOREIGN KEY (`client_id`) REFERENCES `client` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
 
--- Дамп данных таблицы bank.contract: ~1 rows (приблизительно)
+-- Дамп данных таблицы bank.contract: ~0 rows (приблизительно)
 /*!40000 ALTER TABLE `contract` DISABLE KEYS */;
 INSERT INTO `contract` (`id`, `client_id`, `account_type_id`, `amount`, `begin_at`, `end_at`, `created_at`, `updated_at`) VALUES
 	(3, 1, 1, 2000.0000, 1526169600, 1557705600, 1526169690, 4294967295);
@@ -384,23 +380,55 @@ CREATE TABLE IF NOT EXISTS `fk` (
 /*!40000 ALTER TABLE `fk` DISABLE KEYS */;
 /*!40000 ALTER TABLE `fk` ENABLE KEYS */;
 
+-- Дамп структуры для таблица bank.key_storage
+DROP TABLE IF EXISTS `key_storage`;
+CREATE TABLE IF NOT EXISTS `key_storage` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `key` varchar(128) NOT NULL,
+  `value` text NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `key_storage_key_uindex` (`key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- Дамп данных таблицы bank.key_storage: ~0 rows (приблизительно)
+/*!40000 ALTER TABLE `key_storage` DISABLE KEYS */;
+/*!40000 ALTER TABLE `key_storage` ENABLE KEYS */;
+
 -- Дамп структуры для таблица bank.transactions
 DROP TABLE IF EXISTS `transactions`;
 CREATE TABLE IF NOT EXISTS `transactions` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `account_id` int(11) unsigned NOT NULL,
-  `debet` decimal(10,4) NOT NULL DEFAULT '0.0000',
+  `bank_account_id` int(11) unsigned NOT NULL,
+  `debit` decimal(10,4) NOT NULL DEFAULT '0.0000',
   `credit` decimal(10,4) NOT NULL DEFAULT '0.0000',
   `created_at` int(11) unsigned NOT NULL,
   `updated_at` int(11) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `transactions_account_id_fk` (`account_id`),
-  CONSTRAINT `transactions_account_id_fk` FOREIGN KEY (`account_id`) REFERENCES `account` (`id`) ON DELETE CASCADE
+  KEY `transactions_bank_account_id_fk` (`bank_account_id`),
+  CONSTRAINT `transactions_account_id_fk` FOREIGN KEY (`account_id`) REFERENCES `account` (`id`),
+  CONSTRAINT `transactions_bank_account_id_fk` FOREIGN KEY (`bank_account_id`) REFERENCES `bank_account` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Дамп данных таблицы bank.transactions: ~0 rows (приблизительно)
 /*!40000 ALTER TABLE `transactions` DISABLE KEYS */;
 /*!40000 ALTER TABLE `transactions` ENABLE KEYS */;
+
+-- Дамп структуры для таблица bank.url_sef
+DROP TABLE IF EXISTS `url_sef`;
+CREATE TABLE IF NOT EXISTS `url_sef` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `url` varchar(250) NOT NULL,
+  `sef` varchar(250) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `url_sef_url_uindex` (`url`),
+  UNIQUE KEY `url_sef_sef_uindex` (`sef`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- Дамп данных таблицы bank.url_sef: ~0 rows (приблизительно)
+/*!40000 ALTER TABLE `url_sef` DISABLE KEYS */;
+/*!40000 ALTER TABLE `url_sef` ENABLE KEYS */;
 
 -- Дамп структуры для триггер bank.tr_account_bi
 DROP TRIGGER IF EXISTS `tr_account_bi`;
