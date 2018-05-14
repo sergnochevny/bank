@@ -1,0 +1,38 @@
+{
+    "name": "Bank",
+    "description": "Bank",
+    "keywords": [
+        "Bank"
+    ],
+    "type": "project",
+    "license": "BSD-3-Clause",
+    "minimum-stability": "dev",
+    "require": {
+        "php": ">=5.6",
+        "sn/installer": "dev-master",
+        "sn/core": "dev-master"
+    },
+    "require-dev": {
+    },
+    "config": {
+        "process-timeout": 1800
+    },
+    "scripts": {
+        "post-update-cmd": [
+            "sn\\installer\\Installer::postInstall"
+        ],
+        "post-install-cmd": [
+            "sn\\installer\\Installer::postInstall"
+        ]
+    },
+    "extra": {
+        "sn\\installer\\Installer::postInstall": {
+            "copyFiles": [
+                {
+                    "config/def/web.php": "config/web.php",
+                    "config/def/console.php": "config/console.php"
+                }
+            ]
+        }
+    }
+}
