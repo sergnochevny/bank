@@ -335,8 +335,8 @@ CREATE TABLE IF NOT EXISTS `contract_features` (
   `last_calc_data` int(11) unsigned DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY `contract_features_contract_id_fk` (`contract_id`),
-  KEY `contract_features_month_day_index` (`month_day`),
-  KEY `contract_features_closed_index` (`closed`),
+  KEY `contract_features_closed_month_day_last_month_day_index` (`closed`,`month_day`,`last_month_day`),
+  KEY `contract_features_month_day_last_month_day_index` (`month_day`,`last_month_day`),
   CONSTRAINT `contract_features_contract_id_fk` FOREIGN KEY (`contract_id`) REFERENCES `contract` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
 
