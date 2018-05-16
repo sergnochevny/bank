@@ -2,7 +2,7 @@
 
 namespace console\models;
 
-use sn\core\model\ModelProcedureBase;
+use sn\core\console\model\ModelProcedureBase;
 
 /**
  * Class ModelConsole
